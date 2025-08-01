@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24-Hour Sunrise Sunset Clock</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+
+```
+    .clock-container {
+        text-align: center;
+    }
+
+    .clock {
+        width: 400px;
+        height: 400px;
+        border: 8px solid #fff;
+        border-radius: 50%;
+        position: relative;
+        background: radial-gradient(circle, #0f1419, #1a2332);
+        box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+        margin: 0 auto 20px;
+    }
+
+    .clock-center {
+        width: 16px;
+        height: 16px;
+        background: #fff;
+        border-radius: 50%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10;
+    }
+
+    .hour-markers {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+
+    .hour-marker {
+        position: absolute;
+        width: 2px;
+        height: 20px;
+        background: #fff;
+        top: 10px;
+        left: 50%;
+        transform-origin: 1px 190px;
+        transform: translateX(-50%);
+    }
+
+    .hour-marker.major {
+        width: 4px;
+        height: 30px;
+        background: #ffd700;
+        top: 5px;
+    }
+
+    .hour-number {
+        position: absolute;
+        font-size: 18px;
+        font-weight: bold;
+        color: #ffd700;
+        transform: translate(-50%, -50%);
+    }
+
+    .hand {
+        position: absolute;
+        bottom: 50%;
+        left: 50%;
+        transform-origin: bottom center;
+        border-radius: 4px;
+    }
+
+    .hour-hand {
+        width: 6px;
+        height: 120px;
+        background: #fff;
+        margin-left: -3px;
+        z-index: 3;
+    }
+
+    .sunrise-hand {
+        width: 4px;
+        height: 140px;
+        background: #ff6b35;
+        margin-left: -2px;
+        z-index: 2;
+    }
+
+    .sunset-hand {
+        width: 4px;
+        height: 140px;
+        background: #ff8c42;
+        margin-left: -2px;
+        z-index: 2;
+    }
+
+    .legend {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-top: 20px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .legend-color {
+        width: 20px;
+        height: 4px;
+        border-radius: 2px;
+    }
+
+    .time-display {
+        font-size: 24px;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+
+    .sun-times {
+        font-size: 16px;
+        opacity: 0.9;
+    }
+</style>
+```
+
+</head>
+<body>
+    <div class="clock-container">
+        <div class="time-display" id="currentTime"></div>
+        <div class="sun-times" id="sunTimes"></div>
+
+```
+    <div class="clock">
+        <div class="hour-markers" id="hourMarkers"></div>
+        
+        <div class="hand hour-hand" id="hourHand"></div>
+        <div class="hand sunrise-hand" id="sunriseHand"></div>
+        <div class="hand sunset-hand" id="sunsetHand"></div>
+        
+        <div class="clock-center"></div>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background: #fff;"></div>
+            <span>Current Hour</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #ff6b35;"></div>
+            <span>Sunrise</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #ff8c42;"></div>
+            <span>Sunset</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Sample sunrise/sunset times (you can modify these or make them location-based)
+    let sunriseTime = { hour: 6, minute: 30 }; // 6:30 AM
+    let sunsetTime = { hour: 18, minute: 45 }; // 6:45 PM
+
+    function createHourMarkers() {
+        const markersContainer = document.getElementById('hourMarkers');
+        
+        for (let i = 0; i < 24; i++) {
+            const marker = document.createElement('div');
+            marker.className = 'hour-marker';
+            
+            // Make 12 (noon), 0 (midnight), 6, and 18 major markers
+            if (i === 0 || i === 6 || i === 12 || i === 18) {
+                marker.classList.add('major');
+            }
+            
+            // Rotate marker - 12 is at top (0 degrees), so we offset by 12 hours
+            const angle = ((i + 12) % 24) * 15; // 360/24 = 15 degrees per hour
+            marker.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+            
+            markersContainer.appendChild(marker);
+            
+            // Add hour numbers for major hours
+            if (i === 0 || i === 6 || i === 12 || i === 18) {
+                const number = document.createElement('div');
+                number.className = 'hour-number';
+                number.textContent = i === 0 ? '24' : i;
+                
+                // Calculate position for numbers
+                const radius = 160;
+                const radian = (angle - 90) * (Math.PI / 180);
+                const x = 200 + radius * Math.cos(radian);
+                const y = 200 + radius * Math.sin(radian);
+                
+                number.style.left = x + 'px';
+                number.style.top = y + 'px';
+                
+                markersContainer.appendChild(number);
+            }
+        }
+    }
+
+    function updateClock() {
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        const currentSecond = now.getSeconds();
+        
+        // Calculate precise hour position (including minutes and seconds)
+        const hourPosition = (currentHour + currentMinute / 60 + currentSecond / 3600) % 24;
+        
+        // Calculate angles - 12 noon at top (0 degrees)
+        const hourAngle = ((hourPosition + 12) % 24) * 15; // 15 degrees per hour
+        const sunriseAngle = ((sunriseTime.hour + sunriseTime.minute / 60 + 12) % 24) * 15;
+        const sunsetAngle = ((sunsetTime.hour + sunsetTime.minute / 60 + 12) % 24) * 15;
+        
+        // Update hand positions
+        document.getElementById('hourHand').style.transform = `rotate(${hourAngle}deg)`;
+        document.getElementById('sunriseHand').style.transform = `rotate(${sunriseAngle}deg)`;
+        document.getElementById('sunsetHand').style.transform = `rotate(${sunsetAngle}deg)`;
+        
+        // Update time display
+        const timeString = now.toLocaleTimeString('en-US', { 
+            hour12: false, 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit' 
+        });
+        document.getElementById('currentTime').textContent = timeString;
+        
+        // Update sun times display
+        const sunriseDisplay = `${sunriseTime.hour.toString().padStart(2, '0')}:${sunriseTime.minute.toString().padStart(2, '0')}`;
+        const sunsetDisplay = `${sunsetTime.hour.toString().padStart(2, '0')}:${sunsetTime.minute.toString().padStart(2, '0')}`;
+        document.getElementById('sunTimes').textContent = `Sunrise: ${sunriseDisplay} | Sunset: ${sunsetDisplay}`;
+    }
+
+    // Initialize clock
+    createHourMarkers();
+    updateClock();
+    
+    // Update every second
+    setInterval(updateClock, 1000);
+
+    // You can update sunrise/sunset times with this function
+    function setSunTimes(sunrise, sunset) {
+        sunriseTime = sunrise;
+        sunsetTime = sunset;
+        updateClock();
+    }
+
+    // Example: setSunTimes({ hour: 7, minute: 15 }, { hour: 19, minute: 30 });
+</script>
+```
+
+</body>
+</html>
